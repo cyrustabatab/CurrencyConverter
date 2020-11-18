@@ -3,6 +3,9 @@ from tkinter import messagebox
 import json
 from PIL import Image,ImageTk
 
+
+SYMBOLS = ['EUR','JPY','CAD','MXN','CNY','GBP','AUD','BRL','NZD','RUB','ZAR','INR','HKD','CZK','RON','SGD','CHF','SGD','KRW','ILS','USD']
+SYMBOLS_STRING = ','.join(SYMBOLS)
 def convert():
     
     try:
@@ -11,25 +14,24 @@ def convert():
         messagebox.showerror(title='Oops',message='Please enter a NUMBER!')
         starting_currency_entry.delete(0,tkinter.END)
     else:
+        base = from_variable.get()
+        to = to_variable.get()
         if dollars < 0:
             messagebox.showerror(title='Oops',message='Please enter a POSITIVE NUMBER!')
             starting_currency_entry.delete(0,tkinter.END)
         else:
-            url = 'https://api.exchangeratesapi.io/latest'
-            d = {'base': 'USD'}
+            url = f'https://api.exchangeratesapi.io/latest'
+            d = {'base': base,'symbols': SYMBOLS_STRING}
             response = requests.get(url,params=d)
             exchange_rates = json.loads(response.text)
-            print(exchange_rates)
+            
+            if to == base:
+                exchange_rate = 1
+            else:
+                exchange_rate =euros_per_dollar = exchange_rates['rates'][to]
 
-
-##
-            exchange_rate =euros_per_dollar = exchange_rates['rates']['EUR']
-            radio_value = radio_state.get()
-            if radio_value == 2:
-                exchange_rate = 1 / exchange_rate
-
-            euros = dollars * exchange_rate
-            ending_currency_result['text'] = f"{euros:.2f}"
+            result = dollars * exchange_rate
+            ending_currency_result['text'] = f"{result:.2f}"
 
      
     
@@ -92,16 +94,57 @@ def radio_used():
     ending_currency_result['text']= '0.00'
 
 
+def from_changed(*args):
+    starting_currency_label['text'] = f"{from_variable.get()}:"
+    ending_currency_result['text'] = '0.00'
 
+    
+
+
+
+
+def to_changed(*args):
+    ending_currency_label['text'] = f"{to_variable.get()}:"
+    ending_currency_result['text'] = '0.00'
+
+from_variable = tkinter.StringVar()
+from_variable.set('USD')
+
+from_variable.trace('w',from_changed)
+
+option_menu_1_label = tkinter.Label(text='FROM:',font=font)
+option_menu_1_label.grid(row=3,column=0)
+option_menu_1 = tkinter.OptionMenu(window,from_variable,*SYMBOLS)
+option_menu_1.config(font=font)
+option_menu_1.grid(row=3,column=1,sticky=tkinter.W)
+
+
+to_variable = tkinter.StringVar()
+to_variable.trace('w',to_changed)
+
+
+to_variable.set('EUR')
+option_menu_2_label = tkinter.Label(text='TO:',font=font)
+option_menu_2_label.grid(row=4,column=0)
+option_menu_2 = tkinter.OptionMenu(window,to_variable,*SYMBOLS)
+
+option_menu_2.config(font=font)
+option_menu_2.grid(row=4,column=1,sticky=tkinter.W)
+
+
+'''
 radio_state = tkinter.IntVar()
 radio_state.set(1)
 radiobutton1 = tkinter.Radiobutton(frame,text='USD to EURO',value=1,variable=radio_state,command=radio_used,font=font)
 radiobutton1.grid(row=0,column=0)
 radiobutton2 = tkinter.Radiobutton(frame,text='EURO to USD',value=2,variable=radio_state,command=radio_used,font=font)
 radiobutton2.grid(row=1,column=0)
-
+'''
 convert_button = tkinter.Button(text='CONVERT',font=font,command=convert)
-convert_button.grid(row=3,column=1)
+convert_button.grid(row=5,column=0,columnspan=2)
+
+
+
 
 
 
